@@ -1,0 +1,19 @@
+# Copia a inventory.ini y ajusta las IPs de las 4 VMs Debian del clúster.
+
+[seguridad]
+192.168.2.100
+
+[monitorizacion]
+192.168.2.102
+
+[productividad]
+192.168.2.103
+
+[aplicaciones]
+192.168.2.104
+
+[debian:children]
+seguridad
+monitorizacion
+productividad
+aplicaciones

@@ -1,0 +1,25 @@
+{
+  "version": "1.23.0",
+  "notificationList": [],
+  "proxyList": [],
+  "monitorList": [
+    { "name": "Proxmox1 (8006)", "type": "port", "hostname": "192.168.2.111", "port": 8006, "interval": 60, "retryInterval": 60, "maxretries": 2, "active": true },
+    { "name": "Proxmox2 (8006)", "type": "port", "hostname": "192.168.2.112", "port": 8006, "interval": 60, "retryInterval": 60, "maxretries": 2, "active": true },
+    { "name": "Proxmox3 (8006)", "type": "port", "hostname": "192.168.2.113", "port": 8006, "interval": 60, "retryInterval": 60, "maxretries": 2, "active": true },
+    { "name": "VM101 Seguridad (ping)", "type": "ping", "hostname": "192.168.2.100", "interval": 60, "retryInterval": 60, "maxretries": 2, "active": true },
+    { "name": "VM102 Monitorizacion (ping)", "type": "ping", "hostname": "192.168.2.102", "interval": 60, "retryInterval": 60, "maxretries": 2, "active": true },
+    { "name": "VM103 Productividad (ping)", "type": "ping", "hostname": "192.168.2.103", "interval": 60, "retryInterval": 60, "maxretries": 2, "active": true },
+    { "name": "VM104 Aplicaciones (ping)", "type": "ping", "hostname": "192.168.2.104", "interval": 60, "retryInterval": 60, "maxretries": 2, "active": true },
+    { "name": "Nginx Proxy Manager", "type": "http", "url": "http://192.168.2.100:81", "method": "GET", "interval": 60, "retryInterval": 60, "maxretries": 2, "accepted_statuscodes": ["200-399"], "active": true },
+    { "name": "Authentik (SSO)", "type": "http", "url": "http://192.168.2.100:9000/-/health/ready/", "method": "GET", "interval": 60, "retryInterval": 60, "maxretries": 2, "accepted_statuscodes": ["200-299"], "active": true },
+    { "name": "AdGuard Home", "type": "http", "url": "http://192.168.2.100:3000", "method": "GET", "interval": 60, "retryInterval": 60, "maxretries": 2, "accepted_statuscodes": ["200-399"], "active": true },
+    { "name": "Defguard (VPN web)", "type": "http", "url": "http://192.168.2.100:8000", "method": "GET", "interval": 60, "retryInterval": 60, "maxretries": 2, "accepted_statuscodes": ["200-399"], "active": true },
+    { "name": "AdGuard DNS", "type": "port", "hostname": "192.168.2.100", "port": 53, "interval": 60, "retryInterval": 60, "maxretries": 2, "active": true },
+    { "name": "Wazuh Dashboard", "type": "port", "hostname": "192.168.2.102", "port": 443, "interval": 60, "retryInterval": 60, "maxretries": 2, "active": true },
+    { "name": "Wazuh Indexer", "type": "port", "hostname": "192.168.2.102", "port": 9200, "interval": 60, "retryInterval": 60, "maxretries": 2, "active": true },
+    { "name": "Nextcloud", "type": "http", "url": "http://192.168.2.103:8081/status.php", "method": "GET", "interval": 60, "retryInterval": 60, "maxretries": 2, "accepted_statuscodes": ["200-299"], "active": true },
+    { "name": "OnlyOffice", "type": "http", "url": "http://192.168.2.103:8082/healthcheck", "method": "GET", "interval": 60, "retryInterval": 60, "maxretries": 2, "accepted_statuscodes": ["200-299"], "active": true },
+    { "name": "Paperless-ngx", "type": "http", "url": "http://192.168.2.103:8000", "method": "GET", "interval": 60, "retryInterval": 60, "maxretries": 2, "accepted_statuscodes": ["200-399"], "active": true },
+    { "name": "Vaultwarden", "type": "http", "url": "http://192.168.2.103:8080/alive", "method": "GET", "interval": 60, "retryInterval": 60, "maxretries": 2, "accepted_statuscodes": ["200-299"], "active": true }
+  ]
+}

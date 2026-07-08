@@ -1,0 +1,31 @@
+---
+# Despliega Wazuh single-node desde el repo oficial wazuh-docker.
+
+- name: vm.max_map_count requerido por el indexer
+  ansible.posix.sysctl:
+    name: vm.max_map_count
+    value: "262144"
+    state: present
+    reload: true
+    sysctl_file: /etc/sysctl.d/99-wazuh.conf
+
+- name: Clonar wazuh-docker
+  ansible.builtin.git:
+    repo: https://github.com/wazuh/wazuh-docker.git
+    dest: /opt/stacks/wazuh-docker
+    version: "{{ wazuh_version | default('v4.14.5') }}"
+    depth: 1
+
+- name: Generar certificados del indexer (idempotente)
+  ansible.builtin.command:
+    cmd: docker compose -f generate-indexer-certs.yml run --rm generator
+    chdir: /opt/stacks/wazuh-docker/single-node
+    creates: /opt/stacks/wazuh-docker/single-node/config/wazuh_indexer_ssl_certs/root-ca.pem
+
+- name: Levantar Wazuh (manager + indexer + dashboard)
+  community.docker.docker_compose_v2:
+    project_src: /opt/stacks/wazuh-docker/single-node
+    state: present
+
+# NOTA: la contraseña por defecto del dashboard es admin/SecretPassword.
+# Cambiarla con scripts/41-wazuh-change-password.sh tras el primer arranque.

@@ -1,0 +1,59 @@
+---
+- name: Zona horaria
+  community.general.timezone:
+    name: "{{ timezone | default('Europe/Madrid') }}"
+
+- name: Paquetes base
+  ansible.builtin.apt:
+    name: [ca-certificates, curl, gnupg, git]
+    state: present
+    update_cache: true
+
+- name: Directorio de keyrings
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Clave GPG de Docker
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: "0644"
+
+- name: Repositorio de Docker
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+    filename: docker
+    state: present
+
+- name: Instalar Docker Engine + Compose
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+
+- name: Servicio Docker activo y habilitado
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Añadir usuario al grupo docker
+  ansible.builtin.user:
+    name: "{{ ansible_user | default('sysadmin') }}"
+    groups: docker
+    append: true
+
+- name: Carpeta base de stacks
+  ansible.builtin.file:
+    path: /opt/stacks
+    state: directory
+    owner: "{{ ansible_user | default('sysadmin') }}"
+    group: "{{ ansible_user | default('sysadmin') }}"
+    mode: "0755"

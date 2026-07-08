@@ -1,0 +1,39 @@
+# --- Secretos y configuración local (NO subir) ---
+**/*.env
+!**/*.env.example
+**/.env
+!**/.env.example
+*.tfvars
+!*.tfvars.example
+**/all.yml
+!**/all.yml.example
+inventory.ini
+!inventory.ini.example
+credenciales.md
+*.pem
+*.key
+id_ed25519*
+proxmox_vms*
+
+# --- Terraform ---
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+crash.log
+
+# --- Ansible ---
+*.retry
+.vault_pass
+
+# --- Datos de servicios / runtime ---
+stacks/**/data/
+stacks/**/db/
+stacks/**/redis/
+stacks/**/html/
+stacks/**/config/
+stacks/**/consume/
+stacks/**/letsencrypt/
+*.log
+*.qcow2
+*.qcow2.xz

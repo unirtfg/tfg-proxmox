@@ -1,0 +1,17 @@
+services:
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true          # borra imágenes antiguas tras actualizar
+      - WATCHTOWER_SCHEDULE=0 0 4 * * *  # 04:00 cada día (cron de 6 campos)
+      - TZ=Europe/Madrid
+    # IMPORTANTE: solo vigila los contenedores listados (resto = actualización manual).
+    # Ajusta la lista por VM:
+    #   VM101 -> adguard duckdns crowdsec
+    #   VM102 -> uptime-kuma
+    #   VM103 -> vaultwarden
+    command: adguard duckdns crowdsec

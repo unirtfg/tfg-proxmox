@@ -1,0 +1,15 @@
+# Copia este fichero a terraform.tfvars y rellena tus valores (terraform.tfvars está en .gitignore)
+
+pve_endpoint  = "https://192.168.2.111:8006/"
+pve_api_token = "root@pam!terraform=00000000-0000-0000-0000-000000000000"
+pve_insecure  = true
+template_node = "proxmox1"
+
+gateway       = "192.168.2.1"
+dns_server    = "192.168.2.100"
+
+ci_user        = "sysadmin"
+ci_password    = "CAMBIA_ESTA_CONTRASENA"
+ssh_public_key = "ssh-ed25519 AAAA... tu_clave_publica"
+
+# Puedes sobreescribir el mapa de VMs si lo necesitas (ver variables.tf para el default)

@@ -1,0 +1,50 @@
+services:
+  defguard-db:
+    image: postgres:17-alpine
+    container_name: defguard-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: defguard
+      POSTGRES_USER: defguard
+      POSTGRES_PASSWORD: ${DG_DB_PASS}
+    volumes:
+      - ./db:/var/lib/postgresql/data
+
+  defguard-core:
+    image: ghcr.io/defguard/defguard:1.6
+    container_name: defguard-core
+    restart: unless-stopped
+    depends_on: [defguard-db]
+    environment:
+      DEFGUARD_DB_HOST: defguard-db
+      DEFGUARD_DB_PORT: "5432"
+      DEFGUARD_DB_NAME: defguard
+      DEFGUARD_DB_USER: defguard
+      DEFGUARD_DB_PASSWORD: ${DG_DB_PASS}
+      DEFGUARD_AUTH_SECRET: ${DG_AUTH_SECRET}
+      DEFGUARD_GATEWAY_SECRET: ${DG_GATEWAY_SECRET}
+      DEFGUARD_YUBIBRIDGE_SECRET: ${DG_YUBI_SECRET}
+      DEFGUARD_SECRET_KEY: ${DG_SECRET_KEY}      # >= 64 caracteres
+      DEFGUARD_DEFAULT_ADMIN_PASSWORD: ${DG_ADMIN_PASS}
+      DEFGUARD_URL: https://vpn.${BASE_DOMAIN}    # debe ser un DOMINIO, no una IP
+      DEFGUARD_WEBAUTHN_RP_ID: vpn.${BASE_DOMAIN}
+      DEFGUARD_COOKIE_INSECURE: "true"
+      DEFGUARD_OPENID_KEY: /keys/rsakey.pem       # openssl genrsa -out keys/rsakey.pem 2048
+    volumes:
+      - ./keys:/keys
+    ports:
+      - "8000:8000"   # web/enrollment (tras NPM)
+      - "50055:50055" # gRPC para el gateway
+
+# --- Gateway (WireGuard) ---
+# Se levanta APARTE porque necesita el TOKEN que genera Defguard al crear la "Location".
+# Ver scripts/32-defguard-gateway.sh. Resumen del servicio:
+#   defguard-gateway:
+#     image: ghcr.io/defguard/gateway:1.6
+#     network_mode: host
+#     cap_add: [NET_ADMIN]
+#     environment:
+#       DEFGUARD_GRPC_URL: http://127.0.0.1:50055
+#       DEFGUARD_TOKEN: <token de la Location>
+#       DEFGUARD_MASQUERADE: "true"
+# Requiere en el host: net.ipv4.ip_forward=1 y permitir wg0 en DOCKER-USER (FORWARD).

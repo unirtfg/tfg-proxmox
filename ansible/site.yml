@@ -1,0 +1,70 @@
+---
+# Requisitos: ansible-galaxy collection install community.docker community.general
+
+- name: Base del sistema y Docker en todas las VMs Debian
+  hosts: debian
+  roles:
+    - docker
+
+- name: Stack de seguridad (NPM, DuckDNS, AdGuard, CrowdSec, Authentik, Defguard)
+  hosts: seguridad
+  tasks:
+    - name: Desplegar stacks de seguridad
+      ansible.builtin.include_role:
+        name: stack_deploy
+      loop:
+        - duckdns
+        - npm
+        - adguard
+        - crowdsec
+        - authentik
+        - defguard
+      loop_control:
+        loop_var: stack_name
+
+- name: Stack de productividad (Nextcloud + OnlyOffice + Paperless + Vaultwarden)
+  hosts: productividad
+  tasks:
+    - name: Desplegar stacks de productividad
+      ansible.builtin.include_role:
+        name: stack_deploy
+      loop:
+        - productividad
+        - onlyoffice
+      loop_control:
+        loop_var: stack_name
+
+- name: Monitorización (Uptime Kuma + Wazuh)
+  hosts: monitorizacion
+  tasks:
+    - name: Desplegar Uptime Kuma
+      ansible.builtin.include_role:
+        name: stack_deploy
+      vars:
+        stack_name: uptimekuma
+    - name: Desplegar Wazuh (single-node)
+      ansible.builtin.include_role:
+        name: wazuh
+
+- name: Mantenimiento — seguridad (parches SO + Watchtower)
+  hosts: seguridad
+  tasks:
+    - ansible.builtin.include_role: { name: maintenance }
+      vars: { watchtower_containers: [adguard, duckdns, crowdsec] }
+
+- name: Mantenimiento — monitorización
+  hosts: monitorizacion
+  tasks:
+    - ansible.builtin.include_role: { name: maintenance }
+      vars: { watchtower_containers: [uptime-kuma] }
+
+- name: Mantenimiento — productividad
+  hosts: productividad
+  tasks:
+    - ansible.builtin.include_role: { name: maintenance }
+      vars: { watchtower_containers: [vaultwarden] }
+
+- name: Mantenimiento — aplicaciones (solo parches SO)
+  hosts: aplicaciones
+  tasks:
+    - ansible.builtin.include_role: { name: maintenance }

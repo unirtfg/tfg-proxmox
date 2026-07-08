@@ -1,0 +1,38 @@
+---
+# Despliega un stack de Docker Compose desde ../stacks/<stack_name>
+# Variable requerida: stack_name
+
+- name: "[{{ stack_name }}] Crear directorio del stack"
+  ansible.builtin.file:
+    path: "/opt/stacks/{{ stack_name }}"
+    state: directory
+    owner: "{{ ansible_user | default('sysadmin') }}"
+    group: "{{ ansible_user | default('sysadmin') }}"
+    mode: "0755"
+
+- name: "[{{ stack_name }}] Copiar compose.yaml"
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../stacks/{{ stack_name }}/compose.yaml"
+    dest: "/opt/stacks/{{ stack_name }}/compose.yaml"
+    mode: "0644"
+
+- name: "[{{ stack_name }}] Renderizar .env (globales + secretos del stack)"
+  ansible.builtin.copy:
+    dest: "/opt/stacks/{{ stack_name }}/.env"
+    mode: "0600"
+    content: |
+      BASE_DOMAIN={{ base_domain }}
+      DUCKDNS_SUBDOMAINS={{ duckdns_subdomain }}
+      DUCKDNS_TOKEN={{ duckdns_token }}
+      LETSENCRYPT_EMAIL={{ letsencrypt_email }}
+      TZ={{ timezone | default('Europe/Madrid') }}
+      {% for k, v in (stacks_env[stack_name] | default({})).items() %}
+      {{ k }}={{ v }}
+      {% endfor %}
+  no_log: true
+
+- name: "[{{ stack_name }}] docker compose up -d"
+  community.docker.docker_compose_v2:
+    project_src: "/opt/stacks/{{ stack_name }}"
+    state: present
+    pull: missing

@@ -1,0 +1,20 @@
+services:
+  diun:
+    image: crazymax/diun:latest
+    container_name: diun
+    hostname: ${DIUN_HOSTNAME}          # nombre de la VM (aparece en el aviso)
+    restart: unless-stopped
+    command: serve
+    volumes:
+      - ./data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - TZ=${TZ}
+      - DIUN_WATCH_SCHEDULE=0 30 7 * * *          # comprobación diaria 07:30
+      - DIUN_WATCH_FIRSTCHECKNOTIF=false          # no avisar de todo en el primer arranque
+      - DIUN_PROVIDERS_DOCKER=true
+      - DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT=true # vigila todos los contenedores en marcha
+      - DIUN_NOTIF_TELEGRAM_TOKEN=${DIUN_TG_TOKEN}
+      - DIUN_NOTIF_TELEGRAM_CHATIDS=${DIUN_TG_CHATID}
+# Token: crear bot con @BotFather.  ChatID: @userinfobot o getUpdates.
+# Avisa de TODAS las imágenes (las seguras las aplica Watchtower; las manuales decides tú).

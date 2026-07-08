@@ -1,0 +1,62 @@
+---
+# Mantenimiento automatizado: parches de seguridad del SO + Watchtower (contenedores seguros).
+# Variable opcional por host/grupo: watchtower_containers (lista de nombres a auto-actualizar).
+
+- name: Instalar unattended-upgrades
+  ansible.builtin.apt:
+    name: unattended-upgrades
+    state: present
+    update_cache: true
+
+- name: Activar actualizaciones automáticas de seguridad
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    mode: "0644"
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+
+- name: Servicio unattended-upgrades activo
+  ansible.builtin.systemd:
+    name: unattended-upgrades
+    state: started
+    enabled: true
+
+- name: Desplegar Watchtower (solo si hay contenedores seguros definidos)
+  when: watchtower_containers is defined and watchtower_containers | length > 0
+  block:
+    - name: Directorio de Watchtower
+      ansible.builtin.file:
+        path: /opt/stacks/watchtower
+        state: directory
+        owner: "{{ ansible_user | default('sysadmin') }}"
+        group: "{{ ansible_user | default('sysadmin') }}"
+        mode: "0755"
+
+    - name: Compose de Watchtower (lista acotada de contenedores)
+      ansible.builtin.copy:
+        dest: /opt/stacks/watchtower/compose.yaml
+        mode: "0644"
+        content: |
+          services:
+            watchtower:
+              image: containrrr/watchtower
+              container_name: watchtower
+              restart: unless-stopped
+              volumes:
+                - /var/run/docker.sock:/var/run/docker.sock
+              environment:
+                - WATCHTOWER_CLEANUP=true
+                - WATCHTOWER_SCHEDULE=0 0 4 * * *
+                - TZ={{ timezone | default('Europe/Madrid') }}
+              command: {{ watchtower_containers | join(' ') }}
+
+    - name: Levantar Watchtower
+      community.docker.docker_compose_v2:
+        project_src: /opt/stacks/watchtower
+        state: present
+
+# Ejemplo de uso en group_vars:
+#   seguridad:      watchtower_containers: [adguard, duckdns, crowdsec]
+#   monitorizacion: watchtower_containers: [uptime-kuma]
+#   productividad:  watchtower_containers: [vaultwarden]

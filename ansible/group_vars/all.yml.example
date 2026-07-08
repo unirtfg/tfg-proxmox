@@ -1,0 +1,35 @@
+# Copia a group_vars/all.yml y rellena. (all.yml está en .gitignore)
+# Estos valores se inyectan como .env de cada stack de Docker.
+
+timezone: "Europe/Madrid"
+
+# --- Dominio / DNS dinámico ---
+base_domain: "tudominio.duckdns.org"
+duckdns_subdomain: "tudominio"
+duckdns_token: "CAMBIA-TOKEN-DUCKDNS"
+letsencrypt_email: "admin@tudominio.com"
+
+# --- Mapa de secretos por stack (genera contraseñas largas y aleatorias) ---
+stacks_env:
+  authentik:
+    PG_PASS: "CAMBIA"
+    AK_SECRET: "CAMBIA_MIN_64_CARACTERES_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  defguard:
+    DG_DB_PASS: "CAMBIA"
+    DG_AUTH_SECRET: "CAMBIA"
+    DG_GATEWAY_SECRET: "CAMBIA"
+    DG_YUBI_SECRET: "CAMBIA"
+    DG_SECRET_KEY: "CAMBIA_MIN_64_CARACTERES_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    DG_ADMIN_PASS: "CAMBIA"
+  productividad:
+    NC_DB_PASS: "CAMBIA"
+    NC_ADMIN_PASS: "CAMBIA"
+    PL_DB_PASS: "CAMBIA"
+    PL_ADMIN_PASS: "CAMBIA"
+    PL_SECRET: "CAMBIA"
+    VW_TOKEN: "CAMBIA"
+  onlyoffice:
+    OO_JWT: "CAMBIA"
+
+# Versión de Wazuh (rama del repo oficial wazuh-docker)
+wazuh_version: "v4.14.5"

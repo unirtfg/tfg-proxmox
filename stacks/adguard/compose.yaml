@@ -1,0 +1,18 @@
+services:
+  adguard:
+    image: adguard/adguardhome:latest
+    container_name: adguard
+    restart: unless-stopped
+    ports:
+      # El DNS se enlaza a la IP del nodo para no chocar con systemd-resolved (127.0.0.53:53).
+      # Ajusta la IP a la de esta VM (vm-seguridad = 192.168.2.100).
+      - "192.168.2.100:53:53/tcp"
+      - "192.168.2.100:53:53/udp"
+      - "3000:3000/tcp"   # asistente inicial / panel
+      - "8053:80/tcp"
+    volumes:
+      - ./work:/opt/adguardhome/work
+      - ./conf:/opt/adguardhome/conf
+# Si systemd-resolved ocupa el 53:  printf '[Resolve]\nDNSStubListener=no\n' | sudo tee \
+#   /etc/systemd/resolved.conf.d/no-stub.conf && sudo systemctl restart systemd-resolved
+# Reescritura split-DNS recomendada en AdGuard:  *.${BASE_DOMAIN} -> 192.168.2.100

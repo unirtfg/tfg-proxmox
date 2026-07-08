@@ -1,0 +1,111 @@
+services:
+  # ---------------- Vaultwarden ----------------
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: unless-stopped
+    environment:
+      DOMAIN: https://vault.${BASE_DOMAIN}
+      ADMIN_TOKEN: ${VW_TOKEN}
+      SIGNUPS_ALLOWED: "false"
+    volumes:
+      - ./vaultwarden:/data
+    ports:
+      - "8080:80"
+
+  # ---------------- Nextcloud ----------------
+  nc-db:
+    image: postgres:16-alpine
+    container_name: nextcloud-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nextcloud
+      POSTGRES_USER: nextcloud
+      POSTGRES_PASSWORD: ${NC_DB_PASS}
+    volumes:
+      - ./nextcloud/db:/var/lib/postgresql/data
+
+  nc-redis:
+    image: redis:alpine
+    container_name: nextcloud-redis
+    restart: unless-stopped
+
+  nextcloud:
+    image: nextcloud:apache
+    container_name: nextcloud
+    restart: unless-stopped
+    depends_on: [nc-db, nc-redis]
+    environment:
+      POSTGRES_HOST: nc-db
+      POSTGRES_DB: nextcloud
+      POSTGRES_USER: nextcloud
+      POSTGRES_PASSWORD: ${NC_DB_PASS}
+      REDIS_HOST: nc-redis
+      NEXTCLOUD_ADMIN_USER: admin
+      NEXTCLOUD_ADMIN_PASSWORD: ${NC_ADMIN_PASS}
+      NEXTCLOUD_TRUSTED_DOMAINS: nextcloud.${BASE_DOMAIN} 192.168.2.103
+      TRUSTED_PROXIES: 192.168.2.100
+      OVERWRITEPROTOCOL: https
+      OVERWRITEHOST: nextcloud.${BASE_DOMAIN}
+    extra_hosts:
+      # Para que Nextcloud resuelva los dominios internos vía NPM (TLS válido)
+      - "nextcloud.${BASE_DOMAIN}:192.168.2.100"
+      - "office.${BASE_DOMAIN}:192.168.2.100"
+      - "auth.${BASE_DOMAIN}:192.168.2.100"
+    volumes:
+      - ./nextcloud/html:/var/www/html
+      - ./paperless/consume:/escanear   # carpeta puente "Escanear-Paperless"
+    ports:
+      - "8081:80"
+
+  # ---------------- Paperless-ngx ----------------
+  pl-db:
+    image: postgres:16-alpine
+    container_name: paperless-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: paperless
+      POSTGRES_USER: paperless
+      POSTGRES_PASSWORD: ${PL_DB_PASS}
+    volumes:
+      - ./paperless/db:/var/lib/postgresql/data
+
+  pl-redis:
+    image: redis:alpine
+    container_name: paperless-redis
+    restart: unless-stopped
+
+  paperless:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    container_name: paperless
+    restart: unless-stopped
+    depends_on: [pl-db, pl-redis]
+    environment:
+      PAPERLESS_REDIS: redis://pl-redis:6379
+      PAPERLESS_DBHOST: pl-db
+      PAPERLESS_DBNAME: paperless
+      PAPERLESS_DBUSER: paperless
+      PAPERLESS_DBPASS: ${PL_DB_PASS}
+      PAPERLESS_SECRET_KEY: ${PL_SECRET}
+      PAPERLESS_URL: https://paperless.${BASE_DOMAIN}
+      PAPERLESS_ADMIN_USER: admin
+      PAPERLESS_ADMIN_PASSWORD: ${PL_ADMIN_PASS}
+      PAPERLESS_TIME_ZONE: ${TZ}
+      PAPERLESS_OCR_LANGUAGE: spa
+      PAPERLESS_CONSUMER_POLLING: "30"
+      PAPERLESS_SOCIAL_AUTO_SIGNUP: "true"
+      PAPERLESS_ACCOUNT_DEFAULT_GROUPS: "Usuarios"
+      PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect
+      PAPERLESS_SOCIALACCOUNT_PROVIDERS: ${PL_OIDC_PROVIDERS}
+      USERMAP_UID: "1000"
+      USERMAP_GID: "1000"
+    extra_hosts:
+      - "auth.${BASE_DOMAIN}:192.168.2.100"
+    volumes:
+      - ./paperless/data:/usr/src/paperless/data
+      - ./paperless/media:/usr/src/paperless/media
+      - ./paperless/export:/usr/src/paperless/export
+      - ./paperless/consume:/usr/src/paperless/consume
+    ports:
+      - "8000:8000"
+# PL_OIDC_PROVIDERS lo genera scripts/31-authentik-setup.sh (JSON de allauth con client_id/secret).

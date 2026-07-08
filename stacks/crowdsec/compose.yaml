@@ -1,0 +1,20 @@
+services:
+  crowdsec:
+    image: crowdsecurity/crowdsec:latest
+    container_name: crowdsec
+    restart: unless-stopped
+    environment:
+      - COLLECTIONS=crowdsecurity/nginx-proxy-manager crowdsecurity/http-cve crowdsecurity/base-http-scenarios
+      - TZ=${TZ}
+    volumes:
+      - ./config:/etc/crowdsec
+      - ./data:/var/lib/crowdsec/data
+      - /opt/stacks/npm/data/logs:/var/log/npm:ro   # lee los logs de NPM
+    ports:
+      - "6060:6060"               # métricas
+      - "127.0.0.1:8080:8080"     # LAPI (para el firewall-bouncer del host)
+# Adquisición de logs de NPM: crear /opt/stacks/crowdsec/config/acquis.d/npm.yaml
+#   filenames: [ /var/log/npm/*_access.log ]
+#   labels: { type: nginx-proxy-manager }
+# Bouncer de firewall (host): instalar crowdsec-firewall-bouncer-nftables y apuntar
+# api_url=http://127.0.0.1:8080 con la api_key de  `cscli bouncers add fw-bouncer`.
