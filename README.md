@@ -16,13 +16,13 @@ de bajo coste.
                          Internet
                             │
                       ┌─────┴─────┐
-                      │  Router    │  (DuckDNS: tudominio.duckdns.org)
-                      │  + NAT     │  51821/udp → VPN
+                      │  Router   │  (DuckDNS: tudominio.duckdns.org)
+                      │  + NAT    │  51821/udp → VPN
                       └─────┬─────┘
                             │ vmbr0 192.168.2.0/24
    ┌─────────────┬──────────┴──────────┬─────────────┐
-   │ proxmox1    │ proxmox2            │ proxmox3     │   Clúster "cl-empresa"
-   │ .111        │ .112               │ .113         │   (quórum 3 nodos)
+   │ proxmox1    │ proxmox2            │ proxmox3    │   Clúster "cl-empresa"
+   │ .111        │ .112                │ .113        │   (quórum 3 nodos)
    └─────────────┴─────────────────────┴─────────────┘
    Redes por nodo:
      vmbr0     192.168.2.0/24    VMs + gestión (gateway)
